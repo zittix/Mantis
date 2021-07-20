@@ -42,5 +42,14 @@ extension RotationDial {
         didFinishedRotate()
         viewModel.touchPoint = nil
     }
+    
+    override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        // Don't make modal view pan gesture to work when working on crop area
+        if gestureRecognizer as? UIPanGestureRecognizer != nil {
+            return false
+        } else {
+            return super.gestureRecognizerShouldBegin(gestureRecognizer)
+        }
+    }
 }
 

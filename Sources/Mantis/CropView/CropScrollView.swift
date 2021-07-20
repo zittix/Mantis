@@ -49,6 +49,15 @@ class CropScrollView: UIScrollView {
         super.touchesBegan(touches, with: event)
     }
     
+    override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        // Don't make modal view pan gesture to work when working on crop area
+        if gestureRecognizer as? UIPanGestureRecognizer != nil {
+            return false
+        } else {
+            return super.gestureRecognizerShouldBegin(gestureRecognizer)
+        }
+    }
+    
     func checkContentOffset() {
         contentOffset.x = max(contentOffset.x, 0)
         contentOffset.y = max(contentOffset.y, 0)
