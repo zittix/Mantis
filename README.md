@@ -21,7 +21,6 @@
     <img src="Images/cropshapes.png" height="450" alt="Mantis" />
 </p>
 
-
 ## Requirements
 * iOS 11.0+
 * MacOS 10.15+
@@ -33,7 +32,7 @@
     <summary><strong>CocoaPods</strong></summary>
 
 ```ruby
-pod 'Mantis', '~> 1.7.1'
+pod 'Mantis', '~> 1.7.2'
 ```
 </details>
 
@@ -185,6 +184,45 @@ public enum PresetTransformationType {
 ```
 Please use the transformation infomation obtained previously from delegate method cropViewControllerDidCrop(_ cropViewController: CropViewController, cropped: UIImage, transformation: Transformation).
 
+</details>
+                
+<details>
+    <summary><strong>Localization</strong></summary>
+    
+* UIKit project    
+    Add more languages support to the Localizaions section for Project Info tab 
+    
+<p align="center">
+    <img src="https://user-images.githubusercontent.com/26723384/128650945-5a1da648-7e7d-4faf-9c95-232725b05dcc.png" height="200" alt="Mantis" />
+    <br>fig 1</br>
+</p>
+    
+* SwiftUI project    
+    please check this [link](https://github.com/guoyingtao/Mantis/discussions/123#discussioncomment-1127611)
+  
+* Custom localization tables and bundle
+    
+By default mantis will use built in localization tables to get string resources not every language is supported out of the box (see fig 1).
+    
+However if your app support multiple languages and those languages are not 'built in', then you can define your own strings table and localize them in the application target or framework. By doing so you'll need to configure Mantis localization.
+
+**IMPORTANT!** Firstly you'll need to create strings file with these keys:
+
+```
+"Mantis.Done" = "";
+"Mantis.Cancel" = "";
+"Mantis.Reset" = "";
+"Mantis.Original" = "";
+"Mantis.Square" = "";
+```
+Then you'll need to configure Mantis:
+
+```
+let config = Mantis.Config()
+config.localizationConfig.bundle = // a bundle where strings file is located
+config.localizationConfig.tableName = // a localizaed strings file name within the bundle
+```
+  
 </details>
     
 ### Demo projects

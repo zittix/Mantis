@@ -13,16 +13,17 @@ fileprivate let initialFrameLength: CGFloat = 1000
 
 protocol CropMaskProtocol where Self: UIView {
     var cropShapeType: CropShapeType { get set }
+    var innerLayer: CALayer? { get set }
     
-    func initialize()
-    func setMask()
-    func adaptMaskTo(match cropRect: CGRect)
+    func initialize(cropRatio: CGFloat)
+    func setMask(cropRatio: CGFloat)
+    func adaptMaskTo(match cropRect: CGRect, cropRatio: CGFloat)
 }
 
 extension CropMaskProtocol {
-    func initialize() {
+    func initialize(cropRatio: CGFloat = 1.0) {
         setInitialFrame()
-        setMask()
+        setMask(cropRatio: cropRatio)
     }
     
     private func setInitialFrame() {
@@ -31,26 +32,44 @@ extension CropMaskProtocol {
         let screenWidth = UIScreen.main.bounds.width
         let screenHeight = UIScreen.main.bounds.height
         
-        let x = (screenWidth - width) / 2
-        let y = (screenHeight - height) / 2
+        let originX = (screenWidth - width) / 2
+        let originY = (screenHeight - height) / 2
         
-        self.frame = CGRect(x: x, y: y, width: width, height: height)
+        self.frame = CGRect(x: originX, y: originY, width: width, height: height)
     }
     
-    func adaptMaskTo(match cropRect: CGRect) {
-        let scaleX = cropRect.width / minOverLayerUnit
+    func adaptMaskTo(match cropRect: CGRect, cropRatio: CGFloat) {
+        let scaleX: CGFloat
+        
+        switch cropShapeType {
+        case .roundedRect:
+            innerLayer?.removeFromSuperlayer()
+            setMask(cropRatio: cropRatio)
+            scaleX = cropRect.width / (minOverLayerUnit * cropRatio)
+        default:
+            scaleX = cropRect.width / minOverLayerUnit
+        }
+                
         let scaleY = cropRect.height / minOverLayerUnit
-        
+
         transform = CGAffineTransform(scaleX: scaleX, y: scaleY)
-        
+
         self.frame.origin.x = cropRect.midX - self.frame.width / 2
         self.frame.origin.y = cropRect.midY - self.frame.height / 2
     }
     
-    func createOverLayer(opacity: Float) -> CAShapeLayer {
-        let x = bounds.midX - minOverLayerUnit / 2
-        let y = bounds.midY - minOverLayerUnit / 2
-        let initialRect = CGRect(x: x, y: y, width: minOverLayerUnit, height: minOverLayerUnit)
+    func createOverLayer(opacity: Float, cropRatio: CGFloat = 1.0) -> CAShapeLayer {
+        let coff: CGFloat
+        switch cropShapeType {
+        case .roundedRect:
+            coff = cropRatio
+        default:
+            coff = 1
+        }
+        
+        let originX = bounds.midX - minOverLayerUnit * coff / 2
+        let originY = bounds.midY - minOverLayerUnit / 2
+        let initialRect = CGRect(x: originX, y: originY, width: minOverLayerUnit * coff, height: minOverLayerUnit)
         
         let path = UIBezierPath(rect: self.bounds)
         
@@ -64,8 +83,8 @@ extension CropMaskProtocol {
             let points0 = CGPoint(x: initialRect.width * points[0].x + initialRect.origin.x, y: initialRect.height * points[0].y + initialRect.origin.y)
             innerPath.move(to: points0)
         
-            for i in 1..<points.count {
-                let point = CGPoint(x: initialRect.width * points[i].x + initialRect.origin.x, y: initialRect.height * points[i].y + initialRect.origin.y)
+            for index in 1..<points.count {
+                let point = CGPoint(x: initialRect.width * points[index].x + initialRect.origin.x, y: initialRect.height * points[index].y + initialRect.origin.y)
                 innerPath.addLine(to: point)
             }
             
@@ -89,7 +108,7 @@ extension CropMaskProtocol {
         case .heart:
             innerPath = UIBezierPath(heartIn: initialRect)
         case .polygon(let sides, let offset, _):
-            let points = polygonPointArray(sides: sides, x: 0.5, y: 0.5, radius: 0.5, offset: 90 + offset)
+            let points = polygonPointArray(sides: sides, originX: 0.5, originY: 0.5, radius: 0.5, offset: 90 + offset)
             innerPath = getInnerPath(by: points)
         }
                 
@@ -115,13 +134,21 @@ extension UIBezierPath {
         let arcRadius = sqrt(sideOne*sideOne + sideTwo*sideTwo)/2
 
         //Left Hand Curve
-        self.addArc(withCenter: CGPoint(x: rect.minX + rect.width * 0.3, y: rect.minY + rect.height * 0.35), radius: arcRadius, startAngle: 135.degreesToRadians, endAngle: 315.degreesToRadians, clockwise: true)
+        self.addArc(withCenter: CGPoint(x: rect.minX + rect.width * 0.3, y: rect.minY + rect.height * 0.35),
+                    radius: arcRadius,
+                    startAngle: 135.degreesToRadians,
+                    endAngle: 315.degreesToRadians,
+                    clockwise: true)
 
         //Top Centre Dip
         self.addLine(to: CGPoint(x: rect.minX + rect.width/2, y: rect.minY + rect.height * 0.2))
 
         //Right Hand Curve
-        self.addArc(withCenter: CGPoint(x: rect.minX + rect.width * 0.7, y: rect.minY + rect.height * 0.35), radius: arcRadius, startAngle: 225.degreesToRadians, endAngle: 45.degreesToRadians, clockwise: true)
+        self.addArc(withCenter: CGPoint(x: rect.minX + rect.width * 0.7, y: rect.minY + rect.height * 0.35),
+                    radius: arcRadius,
+                    startAngle: 225.degreesToRadians,
+                    endAngle: 45.degreesToRadians,
+                    clockwise: true)
 
         //Right Bottom Line
         self.addLine(to: CGPoint(x: rect.minX + rect.width * 0.5, y: rect.minY + rect.height * 0.95))
@@ -133,8 +160,7 @@ extension UIBezierPath {
 
 extension CGFloat {
     func radians() -> CGFloat {
-        let b = .pi * (self/180)
-        return b
+        return .pi * (self/180)
     }
 }
 
@@ -143,21 +169,20 @@ extension Int {
 }
 
 func polygonPointArray(sides: Int,
-                       x: CGFloat,
-                       y: CGFloat,
+                       originX: CGFloat,
+                       originY: CGFloat,
                        radius: CGFloat,
                        offset: CGFloat) -> [CGPoint] {
     let angle = (360/CGFloat(sides)).radians()
-    let cx = x // x origin
-    let cy = y // y origin
-    let r = radius // radius of circle
-    var i = 0
+    
+    var index = 0
     var points = [CGPoint]()
-    while i <= sides {
-        let xpo = cx + r * cos(angle * CGFloat(i) - offset.radians())
-        let ypo = cy + r * sin(angle * CGFloat(i) - offset.radians())
+    
+    while index <= sides {
+        let xpo = originX + radius * cos(angle * CGFloat(index) - offset.radians())
+        let ypo = originY + radius * sin(angle * CGFloat(index) - offset.radians())
         points.append(CGPoint(x: xpo, y: ypo))
-        i += 1
+        index += 1
     }
     return points
 }

@@ -81,7 +81,7 @@ public class CropViewController: UIViewController {
         self.config = config
         
         switch config.cropShapeType {
-        case .circle, .square:
+        case .circle, .square, .heart:
             self.config.presetFixedRatioType = .alwaysUsingOnePresetFixedRatio(ratio: 1)
         default:
             ()
@@ -135,7 +135,10 @@ public class CropViewController: UIViewController {
         
         cropToolbar.createToolbarUI(config: config.cropToolbarConfig)
                 
-        cropToolbar.initConstraints(heightForVerticalOrientation: config.cropToolbarConfig.cropToolbarHeightForVertialOrientation, widthForHorizonOrientation: config.cropToolbarConfig.cropToolbarWidthForHorizontalOrientation)
+        let heightForVerticalOrientation = config.cropToolbarConfig.cropToolbarHeightForVertialOrientation
+        let widthForHorizonOrientation = config.cropToolbarConfig.cropToolbarWidthForHorizontalOrientation
+        cropToolbar.initConstraints(heightForVerticalOrientation: heightForVerticalOrientation,
+                                    widthForHorizonOrientation: widthForHorizonOrientation)
     }
     
     private func getRatioType() -> RatioType {
@@ -198,7 +201,7 @@ public class CropViewController: UIViewController {
     }    
     
     @objc func rotated() {
-        let currentOrientation = Orientation.orientation
+        let currentOrientation = Orientation.interfaceOrientation
         
         guard currentOrientation != .unknown else { return }
         guard currentOrientation != orientation else { return }
@@ -382,7 +385,7 @@ public class CropViewController: UIViewController {
         
         let fixedRatioManager = getFixedRatioManager()
         
-        guard fixedRatioManager.ratios.count > 0 else { return }
+        guard !fixedRatioManager.ratios.isEmpty else { return }
         
         if fixedRatioManager.ratios.count == 1 {
             let ratioItem = fixedRatioManager.ratios[0]
@@ -411,7 +414,7 @@ public class CropViewController: UIViewController {
     private func handleRotate(rotateAngle: CGFloat) {
         if !disableRotation {
             disableRotation = true
-            cropView.RotateBy90(rotateAngle: rotateAngle) { [weak self] in
+            cropView.rotateBy90(rotateAngle: rotateAngle) { [weak self] in
                 self?.disableRotation = false
                 self?.ratioSelector?.update(fixedRatioManager: self?.getFixedRatioManager())
             }
