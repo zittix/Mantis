@@ -14,37 +14,37 @@ enum RatioType {
 }
 
 class RatioPresenter {
-    var didGetRatio: ((Double)->Void) = { _ in }
+    var didGetRatio: ((Double) -> Void) = { _ in }
     private var type: RatioType = .vertical
     private var originalRatioH: Double
     private var ratios: [RatioItemType]
-    private var fixRatiosShowType: FixRatiosShowType = .adaptive
+    private var fixRatiosShowType: FixedRatiosShowType = .adaptive
 
-    init(type: RatioType, originalRatioH: Double, ratios: [RatioItemType] = [], fixRatiosShowType: FixRatiosShowType = .adaptive) {
+    init(type: RatioType, originalRatioH: Double, ratios: [RatioItemType] = [], fixRatiosShowType: FixedRatiosShowType = .adaptive) {
         self.type = type
         self.originalRatioH = originalRatioH
         self.ratios = ratios
         self.fixRatiosShowType = fixRatiosShowType
     }
 
-    private func getItemTitle(by ratio: RatioItemType)-> String {
+    private func getItemTitle(by ratio: RatioItemType) -> String {
         switch fixRatiosShowType {
         case .adaptive:
             return (type == .horizontal) ? ratio.nameH : ratio.nameV
         case .horizontal:
             return ratio.nameH
-        case .vetical:
+        case .vertical:
             return ratio.nameV
         }
     }
 
-    private func getItemValue(by ratio: RatioItemType)-> Double {
+    private func getItemValue(by ratio: RatioItemType) -> Double {
         switch fixRatiosShowType {
         case .adaptive:
             return (type == .horizontal) ? ratio.ratioH : ratio.ratioV
         case .horizontal:
             return ratio.ratioH
-        case .vetical:
+        case .vertical:
             return ratio.ratioV
         }
     }
@@ -65,7 +65,7 @@ class RatioPresenter {
 
         actionSheet.handlePopupInBigScreenIfNeeded(sourceView: sourceView)
 
-        let cancelText = LocalizedHelper.getString("Mantis.Cancel")
+        let cancelText = LocalizedHelper.getString("Mantis.Cancel", value: "Cancel")
         let cancelAction = UIAlertAction(title: cancelText, style: .cancel)
         actionSheet.addAction(cancelAction)
 

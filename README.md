@@ -10,13 +10,13 @@
 
 # Mantis
 
-   Mantis is an open-source swift library that provides rich cropping interactions for your iOS/Mac app.
+   Mantis is an iOS Image cropping library, which mimics the Photo App written in Swift and provides rich cropping interactions for your iOS/Mac app (Catalyst only).
    
 <p align="center">
     <img src="Images/Mantis on all devices.png" height="400" alt="Mantis" />
 </p>
    
-   Mantis also provide rich crop shapes from the basic circle/square to polygon to arbitrary paths(We even provide a heart shape ❤️ 😏).
+   Mantis also provides rich crop shapes from the basic circle/square to polygon to arbitrary paths(We even provide a heart shape ❤️ 😏).
 <p align="center">
     <img src="Images/cropshapes.png" height="450" alt="Mantis" />
 </p>
@@ -26,13 +26,20 @@
 * MacOS 10.15+
 * Xcode 10.0+
 
+## Breaking Changes in 2.x.x
+* Add CropViewConfig
+  * move some properties from Config to CropViewConfig
+  * make dialConfig as a property of CropViewConfig
+* Refactor CropToolbarConfigProtocol
+  * rename some properties
+
 ## Install
 
 <details>
     <summary><strong>CocoaPods</strong></summary>
 
 ```ruby
-pod 'Mantis', '~> 1.7.2'
+pod 'Mantis', '~> 2.1.1'
 ```
 </details>
 
@@ -48,7 +55,7 @@ github "guoyingtao/Mantis"
  <summary><strong>Swift Packages</strong></summary>
 
 * Respository: https://github.com/guoyingtao/Mantis.git
-* Rules: Version - Exact - 1.6.2
+* Rules: Version - Exact - 2.1.1
 
 </details>
 
@@ -70,7 +77,7 @@ github "guoyingtao/Mantis"
 * The caller needs to conform CropViewControllerDelegate
 ```swift
 public protocol CropViewControllerDelegate: class {
-    func cropViewControllerDidCrop(_ cropViewController: CropViewController, cropped: UIImage, transformation: Transformation)
+    func cropViewControllerDidCrop(_ cropViewController: CropViewController, cropped: UIImage, transformation: Transformation, cropInfo: CropInfo)
     func cropViewControllerDidCancel(_ cropViewController: CropViewController, original: UIImage)
     
     // The implementaion of the following functions are optional
@@ -136,7 +143,7 @@ let cropViewController = Mantis.cropCustomizableViewController(image: <Your Imag
 
 When choose alwaysUsingOnePresetFixedRatio, fixed-ratio setting button does not show.
 
-* If you want to hide rotation dial, set Mantis.Config.showRotationDial = false
+* If you want to hide rotation dial, set Mantis.Config..cropViewConfig.dialConfig = nil
 * If you want to use ratio list instead of presenter, set Mantis.CropToolbarConfig.ratioCandidatesShowType = .alwaysShowRatioList
 
 ```swift
@@ -156,7 +163,7 @@ cropToolbarDelegate?.didSelectRatio(ratio: 9 / 16)
 <details>
 <summary><strong>Crop shapes</strong></summary>
 
-* If you want to set different crop shape, set Mantis.Config.cropShapeType
+* If you want to set different crop shape, set Mantis.Config.cropViewConfig.cropShapeType
 ```swift
 public enum CropShapeType {
     case rect
@@ -174,7 +181,7 @@ public enum CropShapeType {
 <details>
 <summary><strong>Preset transformations</strong></summary>
 
-* If you want to apply transformations when showing an image, set Mantis.Config.presetTransformationType
+* If you want to apply transformations when showing an image, set Mantis.Config.cropViewConfig.presetTransformationType
 ```swift
 public enum PresetTransformationType {
     case none
@@ -182,7 +189,7 @@ public enum PresetTransformationType {
     case presetNormalizedInfo(normailizedInfo: CGRect)
 }
 ```
-Please use the transformation infomation obtained previously from delegate method cropViewControllerDidCrop(_ cropViewController: CropViewController, cropped: UIImage, transformation: Transformation).
+Please use the transformation infomation obtained previously from delegate method cropViewControllerDidCrop(_ cropViewController: CropViewController, cropped: UIImage, transformation: Transformation, , cropInfo: CropInfo).
 
 </details>
                 
@@ -198,7 +205,14 @@ Please use the transformation infomation obtained previously from delegate metho
 </p>
     
 * SwiftUI project    
-    please check this [link](https://github.com/guoyingtao/Mantis/discussions/123#discussioncomment-1127611)
+    Please check this [link](https://github.com/guoyingtao/Mantis/discussions/123#discussioncomment-1127611)
+
+* Static frameworks
+    If you use static frameworks in CocoaPods, you need to add the code below in order to find the correct resource bundle.
+    
+```
+    Mantis.locateResourceBundle(by: Self.self)
+```
   
 * Custom localization tables and bundle
     

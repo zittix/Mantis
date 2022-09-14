@@ -10,22 +10,27 @@ import UIKit
 import Mantis
 
 class CustomizedCropToolbar: UIView, CropToolbarProtocol {
-    var heightForVerticalOrientationConstraint: NSLayoutConstraint?
-    var widthForHorizonOrientationConstraint: NSLayoutConstraint?
-    var cropToolbarDelegate: CropToolbarDelegate?
+    var iconProvider: CropToolbarIconProvider?
+    
+    weak var cropToolbarDelegate: CropToolbarDelegate?
+    
+    private (set)var config: CropToolbarConfigProtocol?
     
     private var fixedRatioSettingButton: UIButton?
     private var cropButton: UIButton?
     private var cancelButton: UIButton?
     private var stackView: UIStackView?
-    private var config: CropToolbarConfig!
     
     var custom: ((Double) -> Void)?
     
-    func createToolbarUI(config: CropToolbarConfig) {
+    func createToolbarUI(config: CropToolbarConfigProtocol?) {
         self.config = config
         
-        backgroundColor = .red
+        guard let config = config else {
+            return
+        }
+        
+        backgroundColor = config.backgroundColor
         
         cropButton = createOptionButton(withTitle: "Crop", andAction: #selector(crop))
         cancelButton = createOptionButton(withTitle: "Cancel", andAction: #selector(cancel))
@@ -46,7 +51,6 @@ class CustomizedCropToolbar: UIView, CropToolbarProtocol {
         stackView?.addArrangedSubview(fixedRatioSettingButton!)
         stackView?.addArrangedSubview(cropButton!)
     }
-    
 
     public func handleFixedRatioSetted(ratio: Double) {
         fixedRatioSettingButton?.setTitleColor(.blue, for: .normal)
@@ -58,7 +62,7 @@ class CustomizedCropToolbar: UIView, CropToolbarProtocol {
         fixedRatioSettingButton?.setTitle("Ratio", for: .normal)
     }
     
-    func adjustUIWhenOrientationChange() {
+    func adjustLayoutWhenOrientationChange() {
         if Orientation.isPortrait {
             stackView?.axis = .horizontal
         } else {
@@ -66,6 +70,19 @@ class CustomizedCropToolbar: UIView, CropToolbarProtocol {
         }
     }
     
+    public override var intrinsicContentSize: CGSize {
+        let superSize = super.intrinsicContentSize
+        guard let config = config else {
+            return superSize
+        }
+        
+        if Orientation.isPortrait {
+            return CGSize(width: superSize.width, height: config.heightForVerticalOrientation)
+        } else {
+            return CGSize(width: config.widthForHorizontalOrientation, height: superSize.height)
+        }
+    }
+
     func getRatioListPresentSourceView() -> UIView? {
         return fixedRatioSettingButton
     }
@@ -83,7 +100,11 @@ class CustomizedCropToolbar: UIView, CropToolbarProtocol {
     }
     
     private func createOptionButton(withTitle title: String?, andAction action: Selector) -> UIButton {
-        let buttonColor = UIColor.white
+        guard let config = config else {
+            return UIButton()
+        }
+
+        let buttonColor = config.foregroundColor
         let buttonFontSize: CGFloat = (UIDevice.current.userInterfaceIdiom == .pad) ?
             config.optionButtonFontSizeForPad :
             config.optionButtonFontSize
@@ -91,7 +112,7 @@ class CustomizedCropToolbar: UIView, CropToolbarProtocol {
         let buttonFont = UIFont.systemFont(ofSize: buttonFontSize)
         
         let button = UIButton(type: .system)
-        button.tintColor = .white
+        button.tintColor = config.foregroundColor
         button.titleLabel?.font = buttonFont
         
         if let title = title {

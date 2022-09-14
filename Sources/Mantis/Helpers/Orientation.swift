@@ -7,7 +7,6 @@
 import UIKit
 
 public struct Orientation {
-    
     static var interfaceOrientation: UIInterfaceOrientation {
         if #available(iOS 13, macOS 10.13, *) {
             return (application.windows.first?.windowScene?.interfaceOrientation)!
@@ -18,23 +17,20 @@ public struct Orientation {
     
     static var deviceOrientation: UIDeviceOrientation? {
         device.orientation.isValidInterfaceOrientation
-            ? device.orientation
-            : nil
+        ? device.orientation
+        : nil
     }
     
-    
     private static var application: UIApplication { .shared }
-    
     private static var device: UIDevice { .current }
-    
     
     /**
      Whether or not the device is in landscape orientation.
      */
     public static var isLandscape: Bool {
         device.orientation.isValidInterfaceOrientation
-            ? device.orientation.isLandscape
-            : interfaceOrientation.isLandscape
+        ? device.orientation.isLandscape
+        : interfaceOrientation.isLandscape
         
     }
     
@@ -43,8 +39,8 @@ public struct Orientation {
      */
     public static var isLandscapeLeft: Bool {
         device.orientation.isValidInterfaceOrientation
-            ? device.orientation == .landscapeLeft
-            : interfaceOrientation == .landscapeLeft
+        ? device.orientation == .landscapeLeft
+        : interfaceOrientation == .landscapeLeft
     }
     
     /**
@@ -52,8 +48,8 @@ public struct Orientation {
      */
     public static var isLandscapeRight: Bool {
         device.orientation.isValidInterfaceOrientation
-            ? device.orientation == .landscapeRight
-            : interfaceOrientation == .landscapeRight
+        ? device.orientation == .landscapeRight
+        : interfaceOrientation == .landscapeRight
     }
     
     /**
@@ -61,7 +57,7 @@ public struct Orientation {
      */
     public static var isPortrait: Bool {
         device.orientation.isValidInterfaceOrientation
-            ? device.orientation.isPortrait
-            : interfaceOrientation.isPortrait
+        ? device.orientation.isPortrait
+        : interfaceOrientation.isPortrait
     }
 }
